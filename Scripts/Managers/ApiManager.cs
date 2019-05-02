@@ -19,6 +19,9 @@ namespace Ebenit.Managers
             return t_instance;
         }
 
+        /// <summary>
+        /// Enum with possible results of New Alias request.
+        /// </summary>
         public enum NewAliasResult
         {
             NOT_FINISHED = 0,
@@ -31,6 +34,10 @@ namespace Ebenit.Managers
             PASSWORD_ERROR,
         }
 
+        /// <summary>
+        /// Delegate to function to set the result of New Alias request
+        /// </summary>
+        /// <param name="result"></param>
         public delegate void SetNewAliasResult(NewAliasResult result);
 
 #pragma warning disable 0649
@@ -49,11 +56,20 @@ namespace Ebenit.Managers
         public string p_api_url;
 
         [Header("Timeout Settings")]
+        /// <summary>
+        /// Number of tries before timeout connection loss is set.
+        /// </summary>
         public int p_timeout_tries = 3;
 
+        /// <summary>
+        /// Number of seconds before the request is considered as timeout.
+        /// </summary>
         public int p_timeout_seconds = 5;
 
         [Header("CurrencyManager Settings")]
+        /// <summary>
+        /// Number of seconds between currency update intervals. If set to 0 or less, the update is possible to make every frame.
+        /// </summary>
         public float p_currency_update_interval;
 
         /// <summary>
@@ -62,17 +78,33 @@ namespace Ebenit.Managers
         public string[] p_required_currencies_names;
 
         [Header("ProductManager Settings")]
+        /// <summary>
+        /// Settings if the product manager should fetch hidden products in Products Get All request.
+        /// </summary>
         public bool p_get_hidden_products = false;
 
         [Header("RequestManager Settings")]
+        /// <summary>
+        /// Number of seconds between deleting of finished requests.
+        /// </summary>
         public float p_requests_clean_interval = 20.0f;
+
+        /// <summary>
+        /// Number of seconds between deleting of finished requests in the exit loop.
+        /// </summary>
         public float p_requests_clean_exit_wait = 1.0f;
 #pragma warning restore 0649
 
+        /// <summary>
+        /// The game time of the last successful login.
+        /// </summary>
         public float pt_last_login_time {
             get; protected set;
         }
 
+        /// <summary>
+        /// True if the login try is finished. Regardless of the success.
+        /// </summary>
         public bool pt_login_done {
             get; protected set;
         }
@@ -98,10 +130,16 @@ namespace Ebenit.Managers
             get; protected set;
         }
 
+        /// <summary>
+        /// True if the timeout connection loss conditions were met.
+        /// </summary>
         public bool pt_timeout {
             get; protected set;
         }
 
+        /// <summary>
+        /// The game time of the last timeout.
+        /// </summary>
         public float pt_last_timeout_time {
             get; protected set;
         }
@@ -130,12 +168,18 @@ namespace Ebenit.Managers
             }
         }
 
+        /// <summary>
+        /// Sets the timeout properties and sets the online property to false.
+        /// </summary>
         public void setTimeout() {
             pt_last_timeout_time = Time.time;
             this.pt_timeout = true;
             this.pt_online = false;
         }
 
+        /// <summary>
+        /// Logs out and resets the managers.
+        /// </summary>
         public void logout() {
             this.pt_login_done = true;
 
@@ -150,6 +194,10 @@ namespace Ebenit.Managers
             ProductManager.getInstance().resetToDefault();
         }
 
+        /// <summary>
+        /// Coroutine to log out with waiting for current requests to finish.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator logoutWaitRequests() {
             if (pt_online && !pt_timeout) {
                 RequestManager request_manager = RequestManager.getInstance();
@@ -160,6 +208,16 @@ namespace Ebenit.Managers
             logout();
         }
 
+        /// <summary>
+        /// Starts the New Alias request.
+        /// </summary>
+        /// <param name="platform_id">ID of platform in Ebenit API to run the request to.</param>
+        /// <param name="email">User e-mail.</param>
+        /// <param name="nickname">User nickname.</param>
+        /// <param name="password">User password in plain text.</param>
+        /// <param name="password_check">User password in plain text. Recommended from other input box to verify the correctness of password.</param>
+        /// <param name="result_method">Delegate method to store the request result.</param>
+        /// <returns>True - if the request was successfuly started. False - otherwise.</returns>
         public bool userNewAlias(uint platform_id, string email, string nickname, string password, string password_check, SetNewAliasResult result_method) {
             this.pt_platform_id = platform_id;
 
@@ -178,6 +236,15 @@ namespace Ebenit.Managers
             return true;
         }
 
+        /// <summary>
+        /// Coroutine to send the New Alias request and handle it.
+        /// </summary>
+        /// <param name="email">User e-mail.</param>
+        /// <param name="nickname">User nickname.</param>
+        /// <param name="password">User password in plain text.</param>
+        /// <param name="password_check">User password in plain text. Recommended from other input box to verify the correctness of password.</param>
+        /// <param name="result_method">Delegate method to store the request result.</param>
+        /// <returns></returns>
         private IEnumerator doUserNewAlias(string email, string nickname, string password, string password_check, SetNewAliasResult result_method) {
             var request = RequestManager.getInstance().createUserNewAliasRequest(email, nickname, password, password_check);
 
@@ -210,6 +277,11 @@ namespace Ebenit.Managers
             result_method(alias_result);
         }
 
+        /// <summary>
+        /// Starts the login coroutine where the login is done by the user token.
+        /// </summary>
+        /// <param name="user_token">User token previously obtained from Ebenit API.</param>
+        /// <param name="permanent_login">True to longer token validity.</param>
         public void initializeApi(string user_token, bool permanent_login = false) {
             this.pt_login_done = false;
 
@@ -231,6 +303,13 @@ namespace Ebenit.Managers
             StartCoroutine(doInitializeApi(user_token, permanent_login));
         }
 
+        /// <summary>
+        /// Starts the login coroutine where the login is done by the user credentials.
+        /// </summary>
+        /// <param name="platform_id">ID of platform in Ebenit API.</param>
+        /// <param name="email">User e-mail.</param>
+        /// <param name="password">User password in plain text.</param>
+        /// <param name="permanent_login">True to longer token validity.</param>
         public void initializeApi(uint platform_id, string email, string password, bool permanent_login = false) {
             this.pt_login_done = false;
 
@@ -254,6 +333,14 @@ namespace Ebenit.Managers
             StartCoroutine(doInitializeApi(email, password, permanent_login));
         }
 
+        /// <summary>
+        /// Start the login coroutine where the login is done by pre-created User object.
+        /// If the user is not present in the Ebenit API, this request does create him.
+        /// 
+        /// We recommend using of this login only for logins from platform with its own authorization.
+        /// </summary>
+        /// <param name="user">User object.</param>
+        /// <param name="platform_id">ID of platform in Ebenit API.</param>
         public void initializeApiPlatform(User user, uint platform_id) {
             this.pt_login_done = false;
 
@@ -278,6 +365,12 @@ namespace Ebenit.Managers
             StartCoroutine(doInitializeApiPlatform());
         }
 
+        /// <summary>
+        /// Coroutine for login by the user token.
+        /// </summary>
+        /// <param name="user_token">User token previously obtained from Ebenit API.</param>
+        /// <param name="permanent_login">True to longer token validity.</param>
+        /// <returns></returns>
         private IEnumerator doInitializeApi(string user_token, bool permanent_login) {
             var request = RequestManager.getInstance().createUserLoginRequest(user_token, permanent_login);
 
@@ -297,6 +390,13 @@ namespace Ebenit.Managers
             pt_login_done = true;
         }
 
+        /// <summary>
+        /// Coroutine for login by the user credentials.
+        /// </summary>
+        /// <param name="email">User e-mail.</param>
+        /// <param name="password">User password in plain text.</param>
+        /// <param name="permanent_login">True to longer token validity.</param>
+        /// <returns></returns>
         private IEnumerator doInitializeApi(string email, string password, bool permanent_login) {
             var request = RequestManager.getInstance().createUserLoginRequest(email, password, permanent_login);
 
@@ -315,6 +415,10 @@ namespace Ebenit.Managers
             pt_login_done = true;
         }
 
+        /// <summary>
+        /// Coroutine for login by pre-created User object.
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator doInitializeApiPlatform() {
             var request = RequestManager.getInstance().createUserLoginPlatformRequest();
 
@@ -325,6 +429,10 @@ namespace Ebenit.Managers
             pt_login_done = true;
         }
 
+        /// <summary>
+        /// Processes the login request response and sets all needed properties.
+        /// </summary>
+        /// <param name="response">Login request response from Ebenit API.</param>
         private void processResponse(UserLoginResponse response) {
             if (response == null) {
                 pt_online = false;
