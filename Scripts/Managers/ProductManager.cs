@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Ebenit.Managers
 {
+    /// <summary>
+    /// Manager to handle product requests.
+    /// </summary>
     public class ProductManager : MonoBehaviour
     {
         protected static ProductManager t_instance;
@@ -17,19 +20,43 @@ namespace Ebenit.Managers
             return t_instance;
         }
 
+        /// <summary>
+        /// True if all products were already fetched.
+        /// </summary>
         public bool pt_products_fetched {
             get; protected set;
         }
+        /// <summary>
+        /// True if the fetching of all products is in progress.
+        /// </summary>
         public bool pt_products_fetching {
             get; protected set;
         }
 
+        /// <summary>
+        /// Set of product categories. Only categories of fetched products are present.
+        /// </summary>
         private HashSet<Category> m_categories = new HashSet<Category>();
+        /// <summary>
+        /// Units of products. Only units of fetched products are present.
+        /// </summary>
         private HashSet<Unit> m_units = new HashSet<Unit>();
+        /// <summary>
+        /// All fetched products.
+        /// </summary>
         private List<Product> m_products = new List<Product>();
 
+        /// <summary>
+        /// Instance of ApiManager.
+        /// </summary>
         private ApiManager m_api_manager = null;
+        /// <summary>
+        /// Instance of CurrencyManager.
+        /// </summary>
         private CurrencyManager m_currency_manager = null;
+        /// <summary>
+        /// Instance of RequestManager.
+        /// </summary>
         private RequestManager m_request_manager = null;
 
         void Awake() {
@@ -48,6 +75,77 @@ namespace Ebenit.Managers
             }
         }
 
+        /// <summary>
+        /// Coroutine to handle the Order New request.
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        private IEnumerator doSendOrder(Order order) {
+            var request = m_request_manager.createOrderNewRequest(order.p_products, order.p_discounts);
+
+            yield return request.send();
+
+            OrderNewResponse result = request.pt_response as OrderNewResponse;
+            if (result != null && result.results != null) {
+                order.p_success_all = order.p_success = result.results.success;
+
+                if (order.p_success && result.results.order != null) {
+                    order.p_success_all = result.results.order.discounts.Length == order.p_discounts.Count;
+
+                    uint currencyId = 0;
+                    if (result.results.order.products != null) {
+                        foreach (var order_product in result.results.order.products) {
+                            if (order_product.currency != null) {
+                                currencyId = order_product.currency.id;
+                            }
+                            Product product = getProduct(order_product.id);
+
+                            if (product == null) {
+                                order.p_success_all = false;
+                            } else {
+                                product.setBought(true, order_product.num);
+                                m_api_manager.pt_user.addProduct(product);
+
+                                if (order_product.unit != null) {
+                                    m_currency_manager.addToCurrency(order_product.unit.id, order_product.quantity * order_product.num, false);
+                                }
+                            }
+                        }
+                    }
+
+                    if (currencyId != 0) {
+                        m_currency_manager.addToCurrency(currencyId, -result.results.order.total_price, false);
+                    }
+                }
+            }
+
+            order.p_done = true;
+        }
+
+        /// <summary>
+        /// Coroutine to handle the Get All Products request (with possibility of Get User Products request).
+        /// </summary>
+        /// <param name="fetch_user_products"></param>
+        /// <param name="user_products"></param>
+        /// <returns></returns>
+        private IEnumerator doFetchProducts(bool fetch_user_products = true, ProductSumResult[] user_products = null) {
+            yield return m_request_manager.createProductAllRequest(m_api_manager.p_get_hidden_products).send();
+
+            if (fetch_user_products) {
+                yield return m_request_manager.createProductByUserRequest().send();
+            }
+
+            if (user_products != null) {
+                setUserProducts(user_products);
+            }
+
+            pt_products_fetched = true;
+            pt_products_fetching = false;
+        }
+
+        /// <summary>
+        /// Resets the manager values to default.
+        /// </summary>
         public void resetToDefault() {
             m_units.Clear();
             m_products.Clear();
@@ -56,6 +154,11 @@ namespace Ebenit.Managers
             pt_products_fetching = false;
         }
 
+        /// <summary>
+        /// Adds category if the category does not already exists.
+        /// </summary>
+        /// <param name="category"></param>
+        /// <returns>True - if the addition was successful. False - otherwise.</returns>
         public bool addCategory(Category category) {
             if (category == null) {
                 return false;
@@ -71,6 +174,14 @@ namespace Ebenit.Managers
             return true;
         }
 
+        /// <summary>
+        /// Returns existing category.
+        /// 
+        /// If the name parameter is not null or empty and the category is not found. New category is created.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Category getCategory(uint id, string name = null) {
             foreach (Category category in m_categories) {
                 if (category.pt_id == id) {
@@ -87,6 +198,11 @@ namespace Ebenit.Managers
             return null;
         }
 
+        /// <summary>
+        /// Adds unit if the unit does not already exists.
+        /// </summary>
+        /// <param name="unit"></param>
+        /// <returns></returns>
         public bool addUnit(Unit unit) {
             if (unit == null) {
                 return false;
@@ -102,6 +218,14 @@ namespace Ebenit.Managers
             return true;
         }
 
+        /// <summary>
+        /// Returns existing unit.
+        /// 
+        /// If the name parameter is not null or empty and the unit is not found. New unit is created.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Unit getUnit(uint id, string name = null) {
             foreach (Unit unit in m_units) {
                 if (unit.pt_id == id) {
@@ -118,6 +242,11 @@ namespace Ebenit.Managers
             return null;
         }
 
+        /// <summary>
+        /// Returns existing product.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public Product getProduct(uint id) {
             foreach (Product product in m_products) {
                 if (product.pt_id == id) {
@@ -128,10 +257,19 @@ namespace Ebenit.Managers
             return null;
         }
 
+        /// <summary>
+        /// Returns list of all products.
+        /// </summary>
+        /// <returns></returns>
         public List<Product> getAllProducts() {
             return m_products;
         }
 
+        /// <summary>
+        /// Starts the coroutine to fetch products. If the products are already fetching this method does nothing.
+        /// </summary>
+        /// <param name="fetch_user_products">True to also fetch user products. Defaults to true.</param>
+        /// <param name="user_products">Already fetched user products to add to user. Defaults to null.</param>
         public void fetchProducts(bool fetch_user_products = true, ProductSumResult[] user_products = null) {
             if (pt_products_fetching) {
                 return;
@@ -143,21 +281,10 @@ namespace Ebenit.Managers
             StartCoroutine(doFetchProducts(fetch_user_products, user_products));
         }
 
-        private IEnumerator doFetchProducts(bool fetch_user_products = true, ProductSumResult[] user_products = null) {
-            yield return m_request_manager.createProductAllRequest(m_api_manager.p_get_hidden_products).send();
-
-            if (fetch_user_products) {
-                yield return m_request_manager.createProductByUserRequest().send();
-            }
-
-            if (user_products != null) {
-                setUserProducts(user_products);
-            }
-
-            pt_products_fetched = true;
-            pt_products_fetching = false;
-        }
-
+        /// <summary>
+        /// Sets all products from Product Get All request.
+        /// </summary>
+        /// <param name="products"></param>
         public void setAllProducts(ProductResult[] products) {
             if (products == null) {
                 return;
@@ -192,6 +319,10 @@ namespace Ebenit.Managers
             }
         }
 
+        /// <summary>
+        /// Sets user products from Product Get User request.
+        /// </summary>
+        /// <param name="user_products"></param>
         public void setUserProducts(ProductSumResult[] user_products) {
             foreach (var user_product in user_products) {
                 if (user_product.product == null || user_product.sum <= 0) {
@@ -229,10 +360,22 @@ namespace Ebenit.Managers
             }
         }
 
+        /// <summary>
+        /// Creates order to buy one product of any quantity.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="quantity"></param>
+        /// <returns>Order object.</returns>
         public Order buyProduct(uint id, float quantity) {
             return buyProduct(getProduct(id), quantity);
         }
 
+        /// <summary>
+        /// Creates order to buy one product of any quantity.
+        /// </summary>
+        /// <param name="product"></param>
+        /// <param name="quantity"></param>
+        /// <returns>Order object.</returns>
         public Order buyProduct(Product product, float quantity) {
             if (product == null) {
                 return null;
@@ -246,54 +389,16 @@ namespace Ebenit.Managers
             return order;
         }
 
+        /// <summary>
+        /// Starts the coroutine to send the order.
+        /// </summary>
+        /// <param name="order"></param>
         public void sendOrder(Order order) {
             order.p_done = false;
             order.p_success = false;
             order.p_success_all = false;
 
             StartCoroutine(doSendOrder(order));
-        }
-
-        private IEnumerator doSendOrder(Order order) {
-            var request = m_request_manager.createOrderNewRequest(order.p_products, order.p_discounts);
-
-            yield return request.send();
-            
-            OrderNewResponse result = request.pt_response as OrderNewResponse;
-            if (result != null && result.results != null) {
-                order.p_success_all = order.p_success = result.results.success;
-
-                if (order.p_success && result.results.order != null) {
-                    order.p_success_all = result.results.order.discounts.Length == order.p_discounts.Count;
-
-                    uint currencyId = 0;
-                    if (result.results.order.products != null) {
-                        foreach (var order_product in result.results.order.products) {
-                            if (order_product.currency != null) {
-                                currencyId = order_product.currency.id;
-                            }
-                            Product product = getProduct(order_product.id);
-
-                            if (product == null) {
-                                order.p_success_all = false;
-                            } else {
-                                product.setBought(true, order_product.num);
-                                m_api_manager.pt_user.addProduct(product);
-
-                                if (order_product.unit != null) {
-                                    m_currency_manager.addToCurrency(order_product.unit.id, order_product.quantity * order_product.num, false);
-                                }
-                            }
-                        }
-                    }
-
-                    if (currencyId != 0) {
-                        m_currency_manager.addToCurrency(currencyId, -result.results.order.total_price, false);
-                    }
-                }
-            }
-
-            order.p_done = true;
         }
     }
 }

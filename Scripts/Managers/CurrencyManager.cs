@@ -1,8 +1,5 @@
 ﻿using Ebenit.Containers;
-using Ebenit.Requests;
-using Ebenit.Requests.Containers.Responses;
 using Ebenit.Requests.Containers.Results;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,13 +24,22 @@ namespace Ebenit.Managers
         private HashSet<Currency> m_currencies = new HashSet<Currency>();
 
         /// <summary>
-        /// True if update is required.
+        /// True if update is in due.
         /// </summary>
         private bool m_do_update = false;
 
+        /// <summary>
+        /// Game time of last update;
+        /// </summary>
         private float m_last_update_time = float.MinValue;
 
+        /// <summary>
+        /// Instance of ApiManager
+        /// </summary>
         private ApiManager m_api_manager = null;
+        /// <summary>
+        /// Instance of RequestManager
+        /// </summary>
         private RequestManager m_request_manager = null;
 
         void Awake() {
@@ -60,6 +66,9 @@ namespace Ebenit.Managers
             }
         }
 
+        /// <summary>
+        /// Starts the currency transaction coroutines (if online).
+        /// </summary>
         public void updateNow() {
             if (m_api_manager.pt_online) {
                 m_last_update_time = Time.time;
@@ -74,6 +83,10 @@ namespace Ebenit.Managers
             }
         }
 
+        /// <summary>
+        /// Checks whether all currency changes are up to date.
+        /// </summary>
+        /// <returns>True - if all currencies are up to date. False - otherwise</returns>
         public bool isCurrenciesUpdated() {
             foreach (var currency in m_currencies) {
                 if (Mathf.Abs(currency.p_value_change) >= 0.001 || currency.pt_refresh) {
@@ -84,6 +97,9 @@ namespace Ebenit.Managers
             return true;
         }
 
+        /// <summary>
+        /// Resets the manager values to default.
+        /// </summary>
         public void resetToDefault() {
             m_currencies.Clear();
             m_do_update = false;
@@ -263,6 +279,13 @@ namespace Ebenit.Managers
             return false;
         }
 
+        /// <summary>
+        /// Adds value to currency.
+        /// </summary>
+        /// <param name="currency"></param>
+        /// <param name="value"></param>
+        /// <param name="update"></param>
+        /// <returns>True if addition was successful.</returns>
         public bool addToCurrency(Currency currency, float value, bool update = true) {
             if (currency == null) {
                 return false;
@@ -281,6 +304,11 @@ namespace Ebenit.Managers
             return false;
         }
 
+        /// <summary>
+        /// Sets the currency for refresh request.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>True - if the currency was set to refresh. False - otherwise.</returns>
         public bool refreshCurrency(uint id) {
             foreach (Currency currency in m_currencies) {
                 if (currency.pt_id == id) {
@@ -293,6 +321,11 @@ namespace Ebenit.Managers
             return false;
         }
 
+        /// <summary>
+        /// Sets the currency for refresh request.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>True - if the currency was set to refresh. False - otherwise.</returns>
         public bool refreshCurrency(string name) {
             if (string.IsNullOrEmpty(name)) {
                 return false;
@@ -309,6 +342,11 @@ namespace Ebenit.Managers
             return false;
         }
 
+        /// <summary>
+        /// Sets the currency for refresh request.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public bool refreshCurrency(Currency currency) {
             if (currency == null) {
                 return false;
@@ -361,6 +399,11 @@ namespace Ebenit.Managers
             return false;
         }
 
+        /// <summary>
+        /// Reset currency to the default value.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>True if the currency was reseted.</returns>
         public bool resetCurrencyToDefault(Currency currency) {
             if (currency == null) {
                 return false;
@@ -375,6 +418,14 @@ namespace Ebenit.Managers
             return false;
         }
 
+        /// <summary>
+        /// Sets the currency value after refresh.
+        /// 
+        /// The currency needs to be in refresh mode to be able to use this method.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="value"></param>
+        /// <returns>True - if the currency value was refreshed. False - otherwise.</returns>
         public bool setCurrencyValueAfterRefresh(uint id, float value) {
             foreach (Currency currency in m_currencies) {
                 if (currency.pt_id == id) {

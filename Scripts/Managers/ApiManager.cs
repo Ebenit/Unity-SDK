@@ -169,6 +169,147 @@ namespace Ebenit.Managers
         }
 
         /// <summary>
+        /// Coroutine for login by the user token.
+        /// </summary>
+        /// <param name="user_token">User token previously obtained from Ebenit API.</param>
+        /// <returns></returns>
+        private IEnumerator doInitializeApi(string user_token) {
+            var request = RequestManager.getInstance().createUserLoginRequest(user_token);
+
+            yield return request.send();
+
+            var response = request.pt_response as UserLoginResponse;
+
+            if (response != null && response.results != null && response.results.success) {
+                this.pt_user = new User(null, response.results.nickname);
+                this.pt_platform_id = response.results.platform_id;
+
+                processResponse(response);
+            } else {
+                pt_online = false;
+            }
+
+            pt_login_done = true;
+        }
+
+        /// <summary>
+        /// Coroutine for login by the user credentials.
+        /// </summary>
+        /// <param name="email">User e-mail.</param>
+        /// <param name="password">User password in plain text.</param>
+        /// <param name="permanent_login">True to longer token validity.</param>
+        /// <returns></returns>
+        private IEnumerator doInitializeApi(string email, string password, bool permanent_login) {
+            var request = RequestManager.getInstance().createUserLoginRequest(email, password, permanent_login);
+
+            yield return request.send();
+
+            var response = request.pt_response as UserLoginResponse;
+
+            if (response != null && response.results != null && response.results.success) {
+                this.pt_user = new User(null, response.results.nickname);
+
+                processResponse(response);
+            } else {
+                pt_online = false;
+            }
+
+            pt_login_done = true;
+        }
+
+        /// <summary>
+        /// Coroutine for login by pre-created User object.
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator doInitializeApiPlatform() {
+            var request = RequestManager.getInstance().createUserLoginPlatformRequest();
+
+            yield return request.send();
+
+            processResponse(request.pt_response as UserLoginResponse);
+
+            pt_login_done = true;
+        }
+
+        /// <summary>
+        /// Processes the login request response and sets all needed properties.
+        /// </summary>
+        /// <param name="response">Login request response from Ebenit API.</param>
+        private void processResponse(UserLoginResponse response) {
+            if (response == null) {
+                pt_online = false;
+                return;
+            }
+
+            pt_last_login_time = Time.time;
+
+            CurrencyManager currency_manager = CurrencyManager.getInstance();
+
+            if (response.results != null && response.results.success) {
+                this.pt_user.setUserToken(response.results.user_token);
+                this.pt_user.setEid(response.results.eid);
+
+                // set currencies
+                currency_manager.setCurrencies(response.results.currencies);
+
+                // currencies check (is all required currency present?)
+                bool currency_not_found = false;
+                foreach (var required_currency_name in p_required_currencies_names) {
+                    if (!currency_manager.isCurrency(required_currency_name)) {
+                        currency_not_found = true;
+                        break;
+                    }
+                }
+
+                pt_online = !currency_not_found;
+
+                // set user products
+                ProductManager.getInstance().setUserProducts(response.results.products);
+            }
+        }
+
+        /// <summary>
+        /// Coroutine to send the New Alias request and handle it.
+        /// </summary>
+        /// <param name="email">User e-mail.</param>
+        /// <param name="nickname">User nickname.</param>
+        /// <param name="password">User password in plain text.</param>
+        /// <param name="password_check">User password in plain text. Recommended from other input box to verify the correctness of password.</param>
+        /// <param name="result_method">Delegate method to store the request result.</param>
+        /// <returns></returns>
+        private IEnumerator doUserNewAlias(string email, string nickname, string password, string password_check, SetNewAliasResult result_method) {
+            var request = RequestManager.getInstance().createUserNewAliasRequest(email, nickname, password, password_check);
+
+            yield return request.send();
+
+            var response = request.pt_response as UserNewAliasResponse;
+
+            NewAliasResult alias_result = NewAliasResult.UNKNOWN_ERROR;
+
+            if (response == null) {
+                alias_result = NewAliasResult.UNKNOWN_ERROR;
+            } else if (response.results != null && response.results.success) {
+                alias_result = NewAliasResult.SUCCESSFUL;
+            } else if (response.errors != null) {
+                if (response.errors.incorrectData) {
+                    alias_result = NewAliasResult.INCORRECT_DATA_ERROR;
+                } else if (response.errors.platform) {
+                    alias_result = NewAliasResult.PLATFORM_ERROR;
+                } else if (response.errors.user) {
+                    alias_result = NewAliasResult.USER_ERROR;
+                } else if (response.errors.password) {
+                    alias_result = NewAliasResult.PASSWORD_ERROR;
+                } else {
+                    alias_result = NewAliasResult.COMMUNICATION_ERROR;
+                }
+            } else {
+                alias_result = NewAliasResult.UNKNOWN_ERROR;
+            }
+
+            result_method(alias_result);
+        }
+
+        /// <summary>
         /// Sets the timeout properties and sets the online property to false.
         /// </summary>
         public void setTimeout() {
@@ -237,52 +378,10 @@ namespace Ebenit.Managers
         }
 
         /// <summary>
-        /// Coroutine to send the New Alias request and handle it.
-        /// </summary>
-        /// <param name="email">User e-mail.</param>
-        /// <param name="nickname">User nickname.</param>
-        /// <param name="password">User password in plain text.</param>
-        /// <param name="password_check">User password in plain text. Recommended from other input box to verify the correctness of password.</param>
-        /// <param name="result_method">Delegate method to store the request result.</param>
-        /// <returns></returns>
-        private IEnumerator doUserNewAlias(string email, string nickname, string password, string password_check, SetNewAliasResult result_method) {
-            var request = RequestManager.getInstance().createUserNewAliasRequest(email, nickname, password, password_check);
-
-            yield return request.send();
-
-            var response = request.pt_response as UserNewAliasResponse;
-
-            NewAliasResult alias_result = NewAliasResult.UNKNOWN_ERROR;
-
-            if (response == null) {
-                alias_result = NewAliasResult.UNKNOWN_ERROR;
-            } else if (response.results != null && response.results.success) {
-                alias_result = NewAliasResult.SUCCESSFUL;
-            } else if (response.errors != null) {
-                if (response.errors.incorrectData) {
-                    alias_result = NewAliasResult.INCORRECT_DATA_ERROR;
-                } else if (response.errors.platform) {
-                    alias_result = NewAliasResult.PLATFORM_ERROR;
-                } else if (response.errors.user) {
-                    alias_result = NewAliasResult.USER_ERROR;
-                } else if (response.errors.password) {
-                    alias_result = NewAliasResult.PASSWORD_ERROR;
-                } else {
-                    alias_result = NewAliasResult.COMMUNICATION_ERROR;
-                }
-            } else {
-                alias_result = NewAliasResult.UNKNOWN_ERROR;
-            }
-
-            result_method(alias_result);
-        }
-
-        /// <summary>
         /// Starts the login coroutine where the login is done by the user token.
         /// </summary>
         /// <param name="user_token">User token previously obtained from Ebenit API.</param>
-        /// <param name="permanent_login">True to longer token validity.</param>
-        public void initializeApi(string user_token, bool permanent_login = false) {
+        public void initializeApi(string user_token) {
             this.pt_login_done = false;
 
             this.pt_timeout = false;
@@ -300,7 +399,7 @@ namespace Ebenit.Managers
                 return;
             }
 
-            StartCoroutine(doInitializeApi(user_token, permanent_login));
+            StartCoroutine(doInitializeApi(user_token));
         }
 
         /// <summary>
@@ -363,107 +462,6 @@ namespace Ebenit.Managers
             this.pt_platform_id = platform_id;
 
             StartCoroutine(doInitializeApiPlatform());
-        }
-
-        /// <summary>
-        /// Coroutine for login by the user token.
-        /// </summary>
-        /// <param name="user_token">User token previously obtained from Ebenit API.</param>
-        /// <param name="permanent_login">True to longer token validity.</param>
-        /// <returns></returns>
-        private IEnumerator doInitializeApi(string user_token, bool permanent_login) {
-            var request = RequestManager.getInstance().createUserLoginRequest(user_token, permanent_login);
-
-            yield return request.send();
-
-            var response = request.pt_response as UserLoginResponse;
-
-            if (response != null && response.results != null && response.results.success) {
-                this.pt_user = new User(null, response.results.nickname);
-                this.pt_platform_id = response.results.platform_id;
-
-                processResponse(response);
-            } else {
-                pt_online = false;
-            }
-
-            pt_login_done = true;
-        }
-
-        /// <summary>
-        /// Coroutine for login by the user credentials.
-        /// </summary>
-        /// <param name="email">User e-mail.</param>
-        /// <param name="password">User password in plain text.</param>
-        /// <param name="permanent_login">True to longer token validity.</param>
-        /// <returns></returns>
-        private IEnumerator doInitializeApi(string email, string password, bool permanent_login) {
-            var request = RequestManager.getInstance().createUserLoginRequest(email, password, permanent_login);
-
-            yield return request.send();
-
-            var response = request.pt_response as UserLoginResponse;
-            
-            if (response != null && response.results != null && response.results.success) {
-                this.pt_user = new User(null, response.results.nickname);
-
-                processResponse(response);
-            } else {
-                pt_online = false;
-            }
-
-            pt_login_done = true;
-        }
-
-        /// <summary>
-        /// Coroutine for login by pre-created User object.
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerator doInitializeApiPlatform() {
-            var request = RequestManager.getInstance().createUserLoginPlatformRequest();
-
-            yield return request.send();
-
-            processResponse(request.pt_response as UserLoginResponse);
-
-            pt_login_done = true;
-        }
-
-        /// <summary>
-        /// Processes the login request response and sets all needed properties.
-        /// </summary>
-        /// <param name="response">Login request response from Ebenit API.</param>
-        private void processResponse(UserLoginResponse response) {
-            if (response == null) {
-                pt_online = false;
-                return;
-            }
-
-            pt_last_login_time = Time.time;
-
-            CurrencyManager currency_manager = CurrencyManager.getInstance();
-
-            if (response.results != null && response.results.success) {
-                this.pt_user.setUserToken(response.results.user_token);
-                this.pt_user.setEid(response.results.eid);
-
-                // set currencies
-                currency_manager.setCurrencies(response.results.currencies);
-
-                // currencies check (is all required currency present?)
-                bool currency_not_found = false;
-                foreach (var required_currency_name in p_required_currencies_names) {
-                    if (!currency_manager.isCurrency(required_currency_name)) {
-                        currency_not_found = true;
-                        break;
-                    }
-                }
-
-                pt_online = !currency_not_found;
-
-                // set user products
-                ProductManager.getInstance().setUserProducts(response.results.products);
-            }
         }
     }
 }
