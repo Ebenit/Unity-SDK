@@ -3,10 +3,10 @@
 namespace Ebenit.Requests.Containers.Results
 {
     /// <summary>
-    /// Container of standard product request response.
+    /// Container for user bought product in Ebenit API responses.
     /// </summary>
     [Serializable]
-    public class ProductSumResult : StandardResult
+    public class ProductSumResult
     {
         public float sum = 0;
         public ProductResult product;

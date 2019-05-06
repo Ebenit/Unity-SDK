@@ -3,10 +3,10 @@
 namespace Ebenit.Requests.Containers.Results
 {
     /// <summary>
-    /// Container for standard result of LookUp table in EbenitAPI.
+    /// Container for result of LookUp table in EbenitAPI.
     /// </summary>
     [Serializable]
-    public class LookupRowResult : StandardResult
+    public class LookupRowResult
     {
         public uint id = 0;
         public string name = null;

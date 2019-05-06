@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Ebenit
 {
-    class UserNewAliasSubmit : MonoBehaviour
+    public class UserNewAliasSubmit : MonoBehaviour
     {
 #pragma warning disable 0649
         public InputField p_email_input;

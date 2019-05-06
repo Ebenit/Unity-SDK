@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Ebenit.Requests
 {
     /// <summary>
-    /// Handles currency transaction request.
+    /// Handles Product Get By User request.
     /// </summary>
     [Serializable]
     public class ProductByUserRequest : ARequest

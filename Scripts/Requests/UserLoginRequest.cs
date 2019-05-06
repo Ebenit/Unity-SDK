@@ -1,18 +1,28 @@
-﻿using Ebenit.Managers;
-using Ebenit.Requests.Api;
+﻿using Ebenit.Requests.Api;
 using Ebenit.Requests.Containers.Responses;
 using System;
-using System.Collections;
 using UnityEngine;
 
 namespace Ebenit.Requests
 {
+    /// <summary>
+    /// Handles Login request.
+    /// </summary>
     [Serializable]
     public class UserLoginRequest : ARequest
     {
+        /// <summary>
+        /// User's credentials.
+        /// </summary>
         public UserLogin user = new UserLogin();
+        /// <summary>
+        /// Platform ID in Ebenit API.
+        /// </summary>
         public uint platform_id;
 
+        /// <summary>
+        /// True to longer validity of token.
+        /// </summary>
         public bool permanent_login = false;
 
         public UserLoginRequest(uint request_number, string user_token) : base(request_number, user_token) {
@@ -25,6 +35,9 @@ namespace Ebenit.Requests
             }
         }
 
+        /// <summary>
+        /// User's credentials sending container.
+        /// </summary>
         [Serializable]
         public class UserLogin
         {

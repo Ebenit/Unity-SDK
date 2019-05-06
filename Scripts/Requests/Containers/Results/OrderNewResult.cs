@@ -2,6 +2,9 @@
 
 namespace Ebenit.Requests.Containers.Results
 {
+    /// <summary>
+    /// Additional informations in result from Order New request response.
+    /// </summary>
     [Serializable]
     public class OrderNewResult : StandardResult
     {

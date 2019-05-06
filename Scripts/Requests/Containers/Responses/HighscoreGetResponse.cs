@@ -5,7 +5,7 @@ using System;
 namespace Ebenit.Requests.Containers.Responses
 {
     /// <summary>
-    /// Container of product by user requests response.
+    /// Container for highscore get requests responses.
     /// </summary>
     [Serializable]
     public class HighscoreGetResponse : AResponse<HighscoreGetResult, StandardErrors>

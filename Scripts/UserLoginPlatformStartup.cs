@@ -18,7 +18,7 @@ using UnityEngine.SocialPlatforms.GameCenter;
 
 namespace Ebenit
 {
-    class UserLoginPlatformStartup : MonoBehaviour
+    public class UserLoginPlatformStartup : MonoBehaviour
     {
         protected static UserLoginPlatformStartup t_instance;
         public static UserLoginPlatformStartup GetInstance() {
@@ -44,7 +44,7 @@ namespace Ebenit
             t_api_manager = ApiManager.getInstance();
 
             if (t_api_manager.pt_online) {
-                // if badly used, do not try login if already logged in
+                // do not try login if already logged in
                 return;
             }
 

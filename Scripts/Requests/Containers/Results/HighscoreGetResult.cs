@@ -2,6 +2,9 @@
 
 namespace Ebenit.Requests.Containers.Results
 {
+    /// <summary>
+    /// Additional informations in result from Highscore Get (All/Around User) requests response.
+    /// </summary>
     [Serializable]
     public class HighscoreGetResult : StandardResult
     {

@@ -3,7 +3,7 @@
 namespace Ebenit.Requests.Containers.Results
 {
     /// <summary>
-    /// Container of standard product request response.
+    /// Container of product request response (product row).
     /// </summary>
     [Serializable]
     public class ProductResult

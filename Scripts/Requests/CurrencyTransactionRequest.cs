@@ -12,8 +12,14 @@ namespace Ebenit.Requests
     [Serializable]
     public class CurrencyTransactionRequest : ARequest
     {
+        /// <summary>
+        /// Currency transaction informations.
+        /// </summary>
         public CurrencyChange currency = new CurrencyChange();
 
+        /// <summary>
+        /// True to fetch current currency value from Ebenit API.
+        /// </summary>
         public bool return_value = false;
 
         public CurrencyTransactionRequest(uint request_number, string user_token) : base(request_number, user_token) { }

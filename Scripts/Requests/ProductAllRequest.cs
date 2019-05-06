@@ -5,9 +5,15 @@ using UnityEngine;
 
 namespace Ebenit.Requests
 {
+    /// <summary>
+    /// Handles Product Get All request.
+    /// </summary>
     [Serializable]
     public class ProductAllRequest : ARequest
     {
+        /// <summary>
+        /// True to fetch hidden product. Defaults to false.
+        /// </summary>
         public bool include_hidden = false;
 
         public ProductAllRequest(uint request_number, string user_token) : base(request_number, user_token) { }

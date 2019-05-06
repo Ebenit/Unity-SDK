@@ -5,7 +5,7 @@ using System;
 namespace Ebenit.Requests.Containers.Responses
 {
     /// <summary>
-    /// Container of product all requests response.
+    /// Container of Order New request response.
     /// </summary>
     [Serializable]
     public class OrderNewResponse : AResponse<OrderNewResult, StandardErrors>

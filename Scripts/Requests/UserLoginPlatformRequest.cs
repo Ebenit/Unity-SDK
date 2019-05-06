@@ -1,8 +1,6 @@
-﻿using Ebenit.Managers;
-using Ebenit.Requests.Api;
+﻿using Ebenit.Requests.Api;
 using Ebenit.Requests.Containers.Responses;
 using System;
-using System.Collections;
 using UnityEngine;
 
 namespace Ebenit.Requests
@@ -14,11 +12,11 @@ namespace Ebenit.Requests
     public class UserLoginPlatformRequest : ARequest
     {
         /// <summary>
-        /// Current user credentials.
+        /// Informations about user on platform.
         /// </summary>
         public UserLoginPlatform user = new UserLoginPlatform();
         /// <summary>
-        /// Current platform ID in EbenitAPI.
+        /// Platform ID in EbenitAPI.
         /// </summary>
         public uint platform_id;
 
@@ -32,6 +30,9 @@ namespace Ebenit.Requests
             }
         }
 
+        /// <summary>
+        /// User informations sending container.
+        /// </summary>
         [Serializable]
         public class UserLoginPlatform
         {

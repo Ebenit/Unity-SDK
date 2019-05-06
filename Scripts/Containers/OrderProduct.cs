@@ -2,12 +2,21 @@
 
 namespace Ebenit.Containers
 {
+    /// <summary>
+    /// Order product container.
+    /// </summary>
     [Serializable]
     public class OrderProduct
     {
+        /// <summary>
+        /// Instance of Product to buy.
+        /// </summary>
         public Product pt_product {
             get; protected set;
         }
+        /// <summary>
+        /// Number of Product to buy.
+        /// </summary>
         public float pt_quantity {
             get; protected set;
         }

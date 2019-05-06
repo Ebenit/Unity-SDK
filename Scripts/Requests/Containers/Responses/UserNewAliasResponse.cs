@@ -5,7 +5,7 @@ using System;
 namespace Ebenit.Requests.Containers.Responses
 {
     /// <summary>
-    /// Container login request response.
+    /// Container of User New Alias request response.
     /// </summary>
     [Serializable]
     public class UserNewAliasResponse : AResponse<UserNewAliasResult, UserNewAliasErrors>

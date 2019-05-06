@@ -30,7 +30,7 @@ namespace Ebenit.Requests
         }
 
         /// <summary>
-        /// Token identifying user logged-in user.
+        /// Token identifying user in requests.
         /// </summary>
         public string user_token = null;
 
@@ -48,12 +48,26 @@ namespace Ebenit.Requests
             get; protected set;
         }
 
+        /// <summary>
+        /// ApiManager instance.
+        /// </summary>
         private ApiManager m_api_manager = null;
 
+        /// <summary>
+        /// Number of request send tries.
+        /// </summary>
         private int m_tries = 0;
 
+        /// <summary>
+        /// True if the request requires already intialized and online ApiManager.
+        /// </summary>
         protected bool t_require_online = true;
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        /// <param name="request_number">Number of Ebenit API request. Last part of URL.</param>
+        /// <param name="user_token">User login token.</param>
         public ARequest(uint request_number, string user_token) {
             this.user_token = user_token;
 
@@ -71,6 +85,10 @@ namespace Ebenit.Requests
             pt_id = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture) + "_" + UnityEngine.Random.Range(0, 10).ToString();
         }
 
+        /// <summary>
+        /// Coroutine which handles the request sending.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator send() {
             if (t_require_online && !m_api_manager.pt_online) {
                 while (!m_api_manager.pt_login_done) {
@@ -108,8 +126,7 @@ namespace Ebenit.Requests
         }
 
         /// <summary>
-        /// Virtual method for result handling.
-        /// It is advised to call base._HandleResult(result) in overriden method.
+        /// Abstract method for result handling.
         /// </summary>
         /// <param name="result"></param>
         protected abstract void handleResult(ApiRequestResult result);

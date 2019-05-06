@@ -6,12 +6,18 @@ using UnityEngine;
 namespace Ebenit.Requests
 {
     /// <summary>
-    /// Handles currency transaction request.
+    /// Handles Highscore Save request.
     /// </summary>
     [Serializable]
     public class HighscoreSaveRequest : ARequest
     {
+        /// <summary>
+        /// ID or name of highscore table in Ebenit API.
+        /// </summary>
         public string table_id;
+        /// <summary>
+        /// Achieved score.
+        /// </summary>
         public int score;
 
         public HighscoreSaveRequest(uint request_number, string user_token) : base(request_number, user_token) { }

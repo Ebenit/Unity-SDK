@@ -1,16 +1,23 @@
-﻿using Ebenit.Managers;
-using Ebenit.Requests.Api;
+﻿using Ebenit.Requests.Api;
 using Ebenit.Requests.Containers.Responses;
 using System;
-using System.Collections;
 using UnityEngine;
 
 namespace Ebenit.Requests
 {
+    /// <summary>
+    /// Handles User New Alias request.
+    /// </summary>
     [Serializable]
     public class UserNewAliasRequest : ARequest
     {
+        /// <summary>
+        /// User's credentials.
+        /// </summary>
         public UserNewAlias user = new UserNewAlias();
+        /// <summary>
+        /// Platform ID in EbenitAPI.
+        /// </summary>
         public uint platform_id;
 
         public UserNewAliasRequest(uint request_number, string user_token) : base(request_number, user_token) {
@@ -23,6 +30,9 @@ namespace Ebenit.Requests
             }
         }
 
+        /// <summary>
+        /// User's credentials sending container.
+        /// </summary>
         [Serializable]
         public class UserNewAlias
         {

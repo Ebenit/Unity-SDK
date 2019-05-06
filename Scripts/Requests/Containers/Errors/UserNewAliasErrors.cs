@@ -3,7 +3,7 @@
 namespace Ebenit.Requests.Containers.Errors
 {
     /// <summary>
-    /// Container of standard errors returned by EbenitAPI.
+    /// Additional errors the User New Alias request may return.
     /// </summary>
     [Serializable]
     public class UserNewAliasErrors : StandardErrors

@@ -3,30 +3,33 @@
 namespace Ebenit.Containers
 {
     /// <summary>
-    /// Information about current user.
+    /// Information about user.
     /// </summary>
     public class User
     {
+        /// <summary>
+        /// User ID in Ebenit API.
+        /// </summary>
         public uint pt_eid {
             get; protected set;
         }
 
         /// <summary>
-        /// ID on current platform. Used mainly for platform login.
+        /// User ID on current platform.
         /// </summary>
         public string pt_id {
             get; protected set;
         }
 
         /// <summary>
-        /// Nickname on current platform.
+        /// User nickname on current platform.
         /// </summary>
         public string pt_nickname {
             get; protected set;
         }
 
         /// <summary>
-        /// User token. Used to access some login required requests.
+        /// Current login token.
         /// </summary>
         public string pt_user_token {
             get; protected set;
@@ -52,10 +55,20 @@ namespace Ebenit.Containers
             m_products.Add(product);
         }
 
+        /// <summary>
+        /// Returns if the products is in the User's bought list.
+        /// </summary>
+        /// <param name="product"></param>
+        /// <returns></returns>
         public bool hasProduct(Product product) {
             return m_products.Contains(product);
         }
 
+        /// <summary>
+        /// Returns if the products is in the User's bought list.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public bool hasProduct(uint id) {
             foreach (Product product in m_products) {
                 if (product.pt_id == id) {
@@ -66,14 +79,26 @@ namespace Ebenit.Containers
             return false;
         }
 
+        /// <summary>
+        /// Gets product from User's list.
+        /// </summary>
+        /// <returns></returns>
         public HashSet<Product> getProducts() {
             return m_products;
         }
 
+        /// <summary>
+        /// Sets user login token.
+        /// </summary>
+        /// <param name="token"></param>
         public void setUserToken(string token) {
             this.pt_user_token = token;
         }
 
+        /// <summary>
+        /// Sets user ID in Ebenit API.
+        /// </summary>
+        /// <param name="id"></param>
         public void setEid(uint id) {
             this.pt_eid = id;
         }
