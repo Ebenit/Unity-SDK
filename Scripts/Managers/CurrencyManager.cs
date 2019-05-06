@@ -103,7 +103,7 @@ namespace Ebenit.Managers
         public void resetToDefault() {
             m_currencies.Clear();
             m_do_update = false;
-            m_last_update_time = 0;
+            m_last_update_time = float.MinValue;
         }
 
         /// <summary>
