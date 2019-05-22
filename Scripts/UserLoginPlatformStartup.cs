@@ -23,14 +23,6 @@ namespace Ebenit
     /// </summary>
     public class UserLoginPlatformStartup : MonoBehaviour
     {
-        protected static UserLoginPlatformStartup t_instance;
-        public static UserLoginPlatformStartup GetInstance() {
-            if (t_instance == null)
-                return new GameObject("Ebenit.LoginPlatformStartup").AddComponent<UserLoginPlatformStartup>();
-
-            return t_instance;
-        }
-
         /// <summary>
         /// User credentials.
         /// </summary>
@@ -46,13 +38,6 @@ namespace Ebenit
         protected ApiManager t_api_manager = null;
 
         protected virtual IEnumerator Start() {
-            if (t_instance != null) {
-                Destroy(this.gameObject);
-                yield break;
-            }
-            t_instance = this;
-            DontDestroyOnLoad(this.gameObject);
-
             t_api_manager = ApiManager.getInstance();
 
             if (t_api_manager.pt_online) {

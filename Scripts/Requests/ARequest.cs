@@ -90,16 +90,6 @@ namespace Ebenit.Requests
         /// </summary>
         /// <returns></returns>
         public IEnumerator send() {
-            if (t_require_online && !m_api_manager.pt_online) {
-                while (!m_api_manager.pt_login_done) {
-                    yield return null;
-                }
-
-                if (!string.IsNullOrEmpty(this.user_token) && m_api_manager.pt_user != null) {
-                    this.user_token = m_api_manager.pt_user.pt_user_token;
-                }
-            }
-
             SEND_API_REQUEST:
             if (!t_require_online || m_api_manager.pt_online) {
                 ApiRequestResult result = new ApiRequestResult();

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace Ebenit
 {
     /// <summary>
-    /// Template for login script in Ebenit API.
+    /// Template for login script via user credentials in Ebenit API.
     /// </summary>
     public class UserLoginSubmit : MonoBehaviour
     {
